@@ -4,6 +4,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 from PIL import Image
 import os
+from clustering_model import gerar_csv_com_clusters
+
+gerar_csv_com_clusters()  # Garante que o CSV com os clusters esteja atualizado
 
 # ------------------------- Configuração da Página -------------------------
 st.set_page_config(page_title="Pokédex", layout="wide")
@@ -11,7 +14,7 @@ st.set_page_config(page_title="Pokédex", layout="wide")
 # ------------------------- Carregar Dados -------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv('pokemon.csv')
+    df = pd.read_csv("pokemon_com_perfil.csv")
     df.columns = df.columns.str.strip()  # Remove espaços dos nomes das colunas
     return df
 
@@ -115,6 +118,7 @@ def show_info(col, poke):
         col.write(f"**Tipo 2:** {poke['Type 2']}")
     else:
         col.write("**Tipo 2:** Nenhum")
+    col.write(f"**Perfil Oculto (Clustering):** {poke['Perfil Oculto']}")
     col.write(f"**HP:** {poke['HP']}")
     col.write(f"**Ataque:** {poke['Attack']}")
     col.write(f"**Defesa:** {poke['Defense']}")

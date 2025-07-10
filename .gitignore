@@ -1,2 +1,7 @@
 venv/
 .env
+# Ignorar todos os arquivos .pkl
+*.pkl
+
+# Ignorar todos os arquivos .csv gerados localmente
+pokemon_com_perfil.csv
