@@ -2,4 +2,5 @@ streamlit # Usar o Steamlit
 pandas    # Pacote Pandas
 plotly    # pacote Plotly
 matplotlib # pacote matplotlib
+scikit-learn #KMEANS
  
