@@ -14,6 +14,52 @@ import numpy as np
 # ------------------------- Configuração da Página -------------------------
 st.set_page_config(page_title="Pokédex", layout="wide")
 
+# ------------------------- Arquivos de música -------------------------
+# Pasta com arquivos de música (formatos suportados: mp3, wav, etc.)
+MUSIC_FOLDER = "music"
+musicas = [f for f in os.listdir(MUSIC_FOLDER) if f.endswith(".mp3")]
+
+# ------------------------- Inicializar o estado -------------------------
+if "musica_atual" not in st.session_state:
+    st.session_state.musica_atual = 0
+if "tocando" not in st.session_state:
+    st.session_state.tocando = False
+
+# ------------------------- Funções dos botões -------------------------
+def proxima_musica():
+    st.session_state.musica_atual = (st.session_state.musica_atual + 1) % len(musicas)
+
+def musica_anterior():
+    st.session_state.musica_atual = (st.session_state.musica_atual - 1) % len(musicas)
+
+def toggle_play():
+    st.session_state.tocando = not st.session_state.tocando
+
+# ------------------------- Interface -------------------------
+st.title("🎵 PokePlayer 🎵")
+
+col1, col2, col3 = st.columns([1, 2, 1])
+with col1:
+    st.button("⏮ Anterior", on_click=musica_anterior)
+with col2:
+    st.button("▶ Tocar / Pausar", on_click=toggle_play)
+with col3:
+    st.button("⏭ Próxima", on_click=proxima_musica)
+
+# ------------------------- Reproduzir Música -------------------------
+musica = musicas[st.session_state.musica_atual]
+caminho_musica = os.path.join(MUSIC_FOLDER, musica)
+
+st.markdown(f"**Tocando agora:** 🎶 `{musica}`")
+
+if st.session_state.tocando:
+    audio_file = open(caminho_musica, 'rb')
+    audio_bytes = audio_file.read()
+    st.audio(audio_bytes, format='audio/mp3')
+else:
+    st.info("▶ Pressione Tocar para ouvir a música.")
+
+
 # ------------------------- Carregar Dados -------------------------
 @st.cache_data
 def load_data():
@@ -47,6 +93,7 @@ def train_model():
 model = train_model()
 
 # ------------------------- Sidebar - Filtros -------------------------
+
 st.sidebar.header("🔍 Filtros")
 
 # Filtro por Tipo 1
@@ -81,6 +128,7 @@ poke1 = df[df['Name'] == pokemon1].iloc[0]
 poke2 = df[df['Name'] == pokemon2].iloc[0]
 
 # ------------------------- Titulo ---------------------------------
+
 st.image("pokeball.png") 
 st.title("Pokedex")
 
