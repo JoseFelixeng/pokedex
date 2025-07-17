@@ -11,6 +11,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 
+
+
+
 # ------------------------- Configuração da Página -------------------------
 st.set_page_config(page_title="Pokédex", layout="wide")
 ### -------------------- PokePlayer ---------------------------------------
