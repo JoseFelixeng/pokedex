@@ -2,30 +2,32 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from PIL import Image
+import numpy as np
 import os
+from PIL import Image
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
-import numpy as np
 
 # ------------------------- Configuração da Página -------------------------
 st.set_page_config(page_title="Pokédex", layout="wide")
-
-# ------------------------- Arquivos de música -------------------------
+### -------------------- PokePlayer ---------------------------------------
+# Arquivos de música 
 # Pasta com arquivos de música (formatos suportados: mp3, wav, etc.)
 MUSIC_FOLDER = "music"
 musicas = [f for f in os.listdir(MUSIC_FOLDER) if f.endswith(".mp3")]
 
-# ------------------------- Inicializar o estado -------------------------
+#Inicializar o estado 
 if "musica_atual" not in st.session_state:
     st.session_state.musica_atual = 0
 if "tocando" not in st.session_state:
     st.session_state.tocando = False
+else:
+    print("Nenhuma musica encontrada na pasta. Quant_musicas{musicas}")
 
-# ------------------------- Funções dos botões -------------------------
+# Funções dos botões 
 def proxima_musica():
     st.session_state.musica_atual = (st.session_state.musica_atual + 1) % len(musicas)
 
@@ -35,7 +37,7 @@ def musica_anterior():
 def toggle_play():
     st.session_state.tocando = not st.session_state.tocando
 
-# ------------------------- Interface -------------------------
+# Interface para as musicas
 st.title("🎵 PokePlayer 🎵")
 
 col1, col2, col3 = st.columns([1, 2, 1])
@@ -66,7 +68,6 @@ def load_data():
     df = pd.read_csv('pokemon.csv')
     df.columns = df.columns.str.strip()  # Remove espaços dos nomes das colunas
     return df
-
 df = load_data()
 
 # ------------------------- Machine Learning (K-means) -------------------------
@@ -263,16 +264,6 @@ fig_radar.update_layout(
 
 st.plotly_chart(fig_radar, use_container_width=True)
 
-# ------------------------ Tabela Comparativa ------------------------
-st.subheader("📋 Tabela Comparativa dos Status")
-
-df_compare = pd.DataFrame({
-    pokemon1: poke1_stats,
-    pokemon2: poke2_stats
-}, index=stats)
-
-st.table(df_compare)
-
 # ------------------- Quantidade de pokemons por geração ---------------------------------
 df_geracao = df['Generation'].value_counts().reset_index()
 df_geracao.columns = ['Generation', 'Count']
@@ -336,7 +327,7 @@ fig = px.imshow(
     cross_tab,
     text_auto=True,
     labels=dict(x="Tipo", y="Geração", color="Quantidade"),
-    color_continuous_scale="Blues"
+    color_continuous_scale="Reds"
 )
 st.plotly_chart(fig, use_container_width=True)
 
@@ -346,7 +337,7 @@ fig = px.imshow(
     cross_tab,
     text_auto=True,
     labels=dict(x="Tipo", y="Geração", color="Quantidade"),
-    color_continuous_scale="Blues"
+    color_continuous_scale="Greens"
 )
 st.plotly_chart(fig, use_container_width=True)
 
@@ -380,7 +371,7 @@ fig = px.pie(
 st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------- Agrupamento de Pokémons (K-means) -------------------------
-st.header("🤖 Agrupamento de Pokémons por Similaridade")
+st.header("🤖 Agrupamento de Pokémons por Similaridade🤖")
 st.write("""
 Os Pokémons foram agrupados em 6 categorias usando o algoritmo K-means com base em seus atributos:
 - **HP, Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade**
@@ -389,8 +380,23 @@ Os Pokémons foram agrupados em 6 categorias usando o algoritmo K-means com base
 # Seletor para escolher um cluster
 cluster_selecionado = st.selectbox("Selecione um grupo para visualizar:", sorted(df['Cluster'].unique()))
 
+
 # Filtrar Pokémons do cluster selecionado
 cluster_df = df[df['Cluster'] == cluster_selecionado]
+
+# ------------------------ Descrição dos Clusters ------------------------
+st.subheader("Características dos Grupos")
+cluster_descriptions = {
+    0: "Pokémons equilibrados - Atributos médios em todas as categorias",
+    1: "Especialistas em Defesa - Alta defesa e HP, ataque moderado",
+    2: "Ataque Puro - Alto ataque físico, baixa defesa especial",
+    3: "Velocistas - Alta velocidade, atributos moderados",
+    4: "Tanques - Alta defesa e HP, baixa velocidade",
+    5: "Poderosos - Altos valores em todos os atributos (Lendários)"
+}
+
+selected_cluster_desc = cluster_descriptions.get(cluster_selecionado, "Descrição não disponível")
+st.info(f"**Grupo {cluster_selecionado}:** {selected_cluster_desc}")
 
 # Mostrar estatísticas do cluster
 st.subheader(f"📊 Estatísticas do Grupo {cluster_selecionado}")
@@ -409,11 +415,11 @@ fig.update_traces(texttemplate='%{y:.1f}', textposition='outside')
 st.plotly_chart(fig, use_container_width=True)
 
 # Mostrar Pokémons do cluster
-st.subheader(f"🧩 Pokémons do Grupo {cluster_selecionado}")
+st.subheader(f"Pokémons do Grupo {cluster_selecionado}")
 st.dataframe(cluster_df[['Name', 'Type 1', 'Type 2', 'HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']])
 
 # Visualização dos clusters (PCA para redução de dimensionalidade)
-st.subheader("🌌 Visualização dos Grupos (2D)")
+st.subheader("Visualização dos Grupos (2D)")
 
 # Reduzir para 2 dimensões usando PCA
 pca = PCA(n_components=2)
@@ -434,22 +440,13 @@ fig = px.scatter(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ------------------------ Descrição dos Clusters ------------------------
-st.subheader("📝 Características dos Grupos")
-cluster_descriptions = {
-    0: "Pokémons equilibrados - Atributos médios em todas as categorias",
-    1: "Especialistas em Defesa - Alta defesa e HP, ataque moderado",
-    2: "Ataque Puro - Alto ataque físico, baixa defesa especial",
-    3: "Velocistas - Alta velocidade, atributos moderados",
-    4: "Tanques - Alta defesa e HP, baixa velocidade",
-    5: "Poderosos - Altos valores em todos os atributos (Lendários)"
-}
 
-selected_cluster_desc = cluster_descriptions.get(cluster_selecionado, "Descrição não disponível")
-st.info(f"**Grupo {cluster_selecionado}:** {selected_cluster_desc}")
 
 # ------------------------- Previsão de Lendário -------------------------
-st.header("🔮 Prever se um Pokémon é Lendário")
+
+
+st.header("Quem é esse Pokemon")
+st.image("quem.png") 
 st.write("Insira os atributos de um Pokémon para prever se ele é lendário:")
 
 col1, col2, col3 = st.columns(3)
